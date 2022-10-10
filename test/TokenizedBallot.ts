@@ -5,6 +5,8 @@ import { ethers }   from "hardhat";
 import { MyToken }  from "../typechain-types";
 import { keccak256 } from "@ethersproject/keccak256";
 import { toUtf8Bytes } from "@ethersproject/strings"
+import { token } from "../typechain-types/@openzeppelin/contracts";
+import { timeStamp } from "console";
 
 const DEFAULT_ADMIN_ROLE: string = '0x0000000000000000000000000000000000000000000000000000000000000000';
 const tokenName: string = 'MyToken';
@@ -100,27 +102,50 @@ describe("Tokenized Ballot - Unit tests" , function(){
         });
 
         it("can cast votes based on current block holdings", async function() {
-
-           
-
+            let address = accounts[0].address
+            let delegate = await tokenizedBallotContract.delegate(address)
+            let mint = await tokenizedBallotContract.mint(address , 1)
+            let nonce = await tokenizedBallotContract.nonces(address)
+            let currentBlock = await ethers.provider.getBlockNumber()
+           // console.log(`This is the nonce ${nonce}`)
+            //await ethers.provider.send("hardhat_mine", ["0x100"]);
+            let tx = await tokenizedBallotContract.checkpoints(address , nonce)
+            let balance = await tokenizedBallotContract.balanceOf(address)
+            expect(tx[1]).to.equal(balance) 
         });
 
         it("can cast votes based on past block holdings", async function() {
+        let address = accounts[0].address
+        let delegate = await tokenizedBallotContract.delegate(address)
+        let mint = await tokenizedBallotContract.mint(address , 1)
+        await mint.wait()
+        await ethers.provider.send("hardhat_mine", ["0x100"]); 
+        let currentBlock = await tokenizedBallotContract.getblocknumber()        
+        // Past votes 
+        
+        let pastvotes = await tokenizedBallotContract.getPastVotes(address , currentBlock.toNumber() - 1)
+        let balance = await tokenizedBallotContract.balanceOf(address)
+        expect(pastvotes).to.equal(balance)
 
-            //let currentBlock = await ethers.provider.getBlockNumber();
-            //console.log({currentBlock});
-            
-            await ethers.provider.send("hardhat_mine", ["0x100"]); //mines 256 blocks
-
-            //currentBlock = await ethers.provider.getBlockNumber();
-            //console.log({currentBlock});
 
         });
 
         it("can query results", async function() {
+        let address = accounts[0].address
+        let delegate = await tokenizedBallotContract.delegate(address)
+        let mint = await tokenizedBallotContract.mint(address , 1)
+        await mint.wait()
+        await ethers.provider.send("hardhat_mine", ["0x100"]); 
+        let currentBlock = await tokenizedBallotContract.getblocknumber()
 
-
-
+        // let nonce = await tokenizedBallotContract.nonces(address)
+        let pastTotalSupply = await tokenizedBallotContract.getPastTotalSupply(currentBlock.toNumber() - 1)
+        let balance = await tokenizedBallotContract.balanceOf(address)
+        expect(pastTotalSupply).to.equal(balance)
+        
+        // Now  we query the past votes 
+        let pastvotes = await tokenizedBallotContract.getPastVotes(address , currentBlock.toNumber() - 1)
+        expect(pastvotes).to.equal(balance)
         });
 
     });

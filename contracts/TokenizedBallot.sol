@@ -40,4 +40,7 @@ contract MyToken is ERC20, AccessControl, ERC20Permit, ERC20Votes {
     {
         super._burn(account, amount);
     }
+    function getblocknumber() public view returns(uint256) {
+        return block.number;
+    }
 }
