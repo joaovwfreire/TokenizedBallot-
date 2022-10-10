@@ -18,7 +18,7 @@ describe("Ballot" , function(){
         it("has the provided proposals" , async function() {
             //Since solidity can't return the whole array we need to do a functions
             for(let index = 0; index < PROPOSALS.length ; index++) {
-                const returnedArray = await ballotContract.proposalNames(index)
+                const returnedArray = await ballotContract.proposals(index)
                 expect(ethers.utils.parseBytes32String(returnedArray)).to.equal(PROPOSALS[index])
             }
         })
